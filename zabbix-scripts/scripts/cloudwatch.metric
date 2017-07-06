@@ -6,14 +6,14 @@ import argparse
 
 
 class Checker(AWSClient):
-    def get_metric(self, interval, metric, namespace, statistic, dimension):
+    def get_metric(self, interval, metric, namespace, statistic, dimensions):
         # Constructing timestamps for limiting CloudWatch datapoint list
         end_time = datetime.datetime.utcnow()
         start_time = end_time - datetime.timedelta(seconds=interval)
         result = self.client.get_metric_statistics(
                 Namespace=namespace,
                 MetricName=metric,
-                Dimensions=[dimension, ],
+                Dimensions=dimensions,
                 StartTime=start_time.isoformat(),
                 EndTime=end_time.isoformat(),
                 Statistics=[statistic, ],
@@ -56,8 +56,8 @@ if __name__ == "__main__":
     parser.add_argument("--statistic", dest="statistic",
                         help="Type of statistic",
                         required=True)
-    parser.add_argument("--dimension", dest="dimension",
-                        help="Dimension (instance id)",
+    parser.add_argument("--dimensions", dest="dimensions",
+                        help="Dimensions (instance id)",
                         required=True)
     parser.add_argument("--region", dest="region",
                         help="Instance region",
@@ -73,11 +73,12 @@ if __name__ == "__main__":
                         required=False)
     args = parser.parse_args()
 
-    # AWS requires dimension to be dict like:
+    # AWS requires dimensions to be an array of dicts like:
     # { "Name": dimension_name, "Value" dimension_value }
-    instance = args.dimension.split("=")
-    dimension = dict(zip(("Name", "Value"), instance))
-
+    dimensions = list()
+    for dimension_equal_linked in args.dimensions.split("+"):
+       instance = dimension_equal_linked.split("=")
+       dimensions.append(dict(zip(("Name", "Value"), instance)))
     default_path = "/usr/lib/zabbix/scripts/conf/aws.conf"
     conf_file = args.config if args.config else default_path
     config = ConfigParser.ConfigParser()
@@ -89,4 +90,4 @@ if __name__ == "__main__":
                              metric=args.metric,
                              namespace=args.namespace,
                              statistic=args.statistic,
-                             dimension=dimension)
+                             dimensions=dimensions)
