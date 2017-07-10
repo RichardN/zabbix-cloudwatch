@@ -6,7 +6,7 @@ class Discoverer(BasicDiscoverer):
     def discovery(self, *args):
         regex_lb_long = re.compile('(?:\:\d+\:loadbalancer\/)(.*)$')
         regex_lb_short = re.compile('(?:\:\d+\:loadbalancer\/app\/)([^/]+)/(?:.*)$')
-        regex_tg_long = re.compile('(?:\:\d+\:targetgroup\/)(.*)$')
+        regex_tg_long = re.compile('(?:\:\d+\:)(.*)$')
 
         response = self.client.describe_target_groups()
         data = list()
